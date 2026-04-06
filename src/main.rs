@@ -6,11 +6,47 @@ use clap::Parser;
 use pencil_analyzer::output::OutputOptions;
 use pencil_analyzer::{extract, output, parse, resolve};
 
+const TYPES: &[(&str, &str)] = &[
+    ("rectangle", "Rectangle shape"),
+    ("frame", "Frame container (supports layout)"),
+    ("text", "Text node"),
+    ("ellipse", "Ellipse / circle / arc"),
+    ("line", "Line"),
+    ("polygon", "Polygon"),
+    ("path", "Vector path"),
+    ("group", "Group container (supports layout)"),
+    ("note", "Design note"),
+    ("prompt", "AI prompt node"),
+    ("context", "Context node"),
+    ("icon_font", "Icon font glyph"),
+    ("ref", "Component reference instance"),
+];
+
+const FILTERS: &[(&str, &str)] = &[
+    ("content", "Text content"),
+    ("fill", "Fill (color, gradient, image)"),
+    ("layout", "Layout mode (horizontal/vertical)"),
+    ("size", "Width and height"),
+    ("position", "X/Y coordinates"),
+    ("reusable", "Reusable component flag"),
+    ("descendants", "Ref descendant overrides"),
+    ("themes", "Document theme definitions"),
+    ("variables", "Document variable definitions"),
+    ("imports", "Import declarations"),
+];
+
+const EXTRACTS: &[(&str, &str)] = &[
+    ("components", "Reusable nodes (reusable: true)"),
+    ("variables", "Variable definitions"),
+    ("imports", "Import declarations"),
+    ("themes", "Theme definitions"),
+];
+
 #[derive(Parser)]
 #[command(name = "pencil_analyzer", about = "Parse and analyze Pencil .pen files")]
 struct Cli {
     /// Path to .pen file
-    file: PathBuf,
+    file: Option<PathBuf>,
 
     /// Output format
     #[arg(long, default_value = "text", value_parser = ["json", "text"])]
@@ -39,11 +75,38 @@ struct Cli {
     /// Filter nodes by type (e.g., "text,frame,rectangle")
     #[arg(long = "type", value_delimiter = ',')]
     node_type: Option<Vec<String>>,
+
+    /// List available values: types, filters, extracts
+    #[arg(long, value_parser = ["types", "filters", "extracts"])]
+    list: Option<String>,
+}
+
+fn print_list(title: &str, items: &[(&str, &str)]) {
+    println!("{title}:");
+    let max_name = items.iter().map(|(n, _)| n.len()).max().unwrap_or(0);
+    for (name, desc) in items {
+        println!("  {name:<max_name$}  {desc}");
+    }
 }
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
-    let mut doc = parse::parse_document(&cli.file)?;
+
+    if let Some(ref category) = cli.list {
+        match category.as_str() {
+            "types" => print_list("Available --type values", TYPES),
+            "filters" => print_list("Available --filter values", FILTERS),
+            "extracts" => print_list("Available --extract values", EXTRACTS),
+            _ => unreachable!(),
+        }
+        return Ok(());
+    }
+
+    let file = cli.file.as_ref().ok_or_else(|| {
+        anyhow::anyhow!("A .pen file path is required (or use --list to show available values)")
+    })?;
+
+    let mut doc = parse::parse_document(file)?;
 
     if cli.resolve_refs {
         doc = resolve::refs::resolve_refs(&doc)?;
