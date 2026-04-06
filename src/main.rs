@@ -35,6 +35,10 @@ struct Cli {
     /// Extract specific categories: components, variables, imports, themes
     #[arg(long, value_delimiter = ',')]
     extract: Option<Vec<String>>,
+
+    /// Filter nodes by type (e.g., "text,frame,rectangle")
+    #[arg(long = "type", value_delimiter = ',')]
+    node_type: Option<Vec<String>>,
 }
 
 fn main() -> Result<()> {
@@ -59,6 +63,11 @@ fn main() -> Result<()> {
 
     if let Some(ref cats) = extract_set {
         doc = extract::extract_document(&doc, cats);
+    }
+
+    if let Some(types) = cli.node_type {
+        let type_set: HashSet<String> = types.into_iter().collect();
+        doc = extract::filter_by_type(&doc, &type_set);
     }
 
     let opts = OutputOptions {

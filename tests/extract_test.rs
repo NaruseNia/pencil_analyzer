@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use pencil_analyzer::extract::extract_document;
+use pencil_analyzer::extract::{extract_document, filter_by_type};
 use pencil_analyzer::model::common::*;
 use pencil_analyzer::model::document::*;
 use pencil_analyzer::model::objects::*;
@@ -304,4 +304,76 @@ fn extract_components_empty_when_none_reusable() {
     let result = extract_document(&doc, &cats);
 
     assert!(result.children.is_empty());
+}
+
+// ============================================================
+// --type (filter by node type)
+// ============================================================
+
+#[test]
+fn filter_by_type_text_only() {
+    let doc = sample_doc();
+    let types: HashSet<String> = ["text".into()].into();
+    let result = filter_by_type(&doc, &types);
+
+    // Text node "label" is nested inside frame "btn" — should be extracted
+    assert_eq!(result.children.len(), 1);
+    assert_eq!(result.children[0].type_name(), "text");
+    assert_eq!(result.children[0].id(), "label");
+}
+
+#[test]
+fn filter_by_type_frame_collects_all_frames() {
+    let doc = sample_doc();
+    let types: HashSet<String> = ["frame".into()].into();
+    let result = filter_by_type(&doc, &types);
+
+    // Top-level frames "btn" and "page" should match; "card" is inside "page"
+    // but "page" itself matches so its subtree is preserved (card included as child)
+    assert_eq!(result.children.len(), 2);
+    assert_eq!(result.children[0].id(), "btn");
+    assert_eq!(result.children[1].id(), "page");
+}
+
+#[test]
+fn filter_by_type_preserves_subtree() {
+    let doc = sample_doc();
+    let types: HashSet<String> = ["frame".into()].into();
+    let result = filter_by_type(&doc, &types);
+
+    // "btn" frame should still have its text child
+    let btn_children = result.children[0].children().unwrap();
+    assert_eq!(btn_children.len(), 1);
+    assert_eq!(btn_children[0].type_name(), "text");
+}
+
+#[test]
+fn filter_by_type_multiple_types() {
+    let doc = sample_doc();
+    let types: HashSet<String> = ["text".into(), "frame".into()].into();
+    let result = filter_by_type(&doc, &types);
+
+    // Both top-level frames match directly
+    assert_eq!(result.children.len(), 2);
+}
+
+#[test]
+fn filter_by_type_no_match() {
+    let doc = sample_doc();
+    let types: HashSet<String> = ["rectangle".into()].into();
+    let result = filter_by_type(&doc, &types);
+
+    assert!(result.children.is_empty());
+}
+
+#[test]
+fn filter_by_type_preserves_document_metadata() {
+    let doc = sample_doc();
+    let types: HashSet<String> = ["text".into()].into();
+    let result = filter_by_type(&doc, &types);
+
+    // Document-level fields should remain untouched
+    assert!(result.themes.is_some());
+    assert!(result.imports.is_some());
+    assert!(result.variables.is_some());
 }
