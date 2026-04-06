@@ -8,27 +8,101 @@ Pencil ([pencil.dev](https://pencil.dev)) の `.pen` ファイル構造を解析
 
 Pencilのデザインファイル (`.pen`) を解析し、デザインの構造・コンポーネント・スタイル情報などを抽出します。特にAIへのコンテキストとして渡すことを想定しており、デザインの内容をテキストベースで把握できるようにすることを目指しています。
 
-## 開発環境
+## インストール
+
+[Releases](https://github.com/NaruseNia/pencil_analyzer/releases) からビルド済みバイナリをダウンロードするか、ソースからビルド:
+
+```bash
+cargo install --path .
+```
+
+## 使い方
+
+```bash
+# 人間可読なツリー表示 (デフォルト)
+pencil_analyzer design.pen
+
+# JSON出力
+pencil_analyzer design.pen --format json
+
+# コンポーネント参照を展開 (refノードを解決)
+pencil_analyzer design.pen --resolve-refs
+
+# 変数を解決 (デフォルトテーマ使用)
+pencil_analyzer design.pen --resolve-vars
+
+# テーマを指定して変数を解決
+pencil_analyzer design.pen --resolve-vars --theme "mode=dark,spacing=condensed"
+
+# 全オプションを組み合わせ
+pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --format json
+```
+
+### オプション
+
+| フラグ | 説明 |
+|---|---|
+| `--format text\|json` | 出力形式 (デフォルト: `text`) |
+| `--resolve-refs` | `ref` ノードを完全なコンポーネントツリーに展開 |
+| `--resolve-vars` | `$variable` 参照を具体的な値に置換 |
+| `--theme <axes>` | 変数解決のテーマ指定 (例: `mode=dark`) |
+
+### 出力例
+
+**テキスト形式** — 型、ID、サイズ、主要プロパティを含む人間可読なツリー:
+
+```
+Document (version 2.9)
+  Themes: mode[light, dark]
+  Variables: 2 defined
+    $color.background: color
+    $color.text: color
+
+  [frame] round-button (200x48) @(0,0)
+    reusable: true
+    fill: Color(Value("#3B82F6"))
+    layout: Horizontal
+    [text] label
+      fill: Color(Value("#FFFFFF"))
+      content: Submit
+  [frame] landing-page (1440x900) @(300,0)
+    fill: Color(Variable("$color.background"))
+    layout: Vertical
+    [text] hero-title
+      content: Welcome to Pencil
+    [ref] cta-button -> round-button
+      override: label
+```
+
+**JSON形式** — 再シリアライズされたドキュメント構造。他ツールやAIコンテキストへのパイプに最適。
+
+## 対応する .pen 機能
+
+- **オブジェクト型**: rectangle, frame, text, ellipse, line, polygon, path, group, note, prompt, context, icon_font, ref
+- **レイアウト**: flexboxスタイル (vertical/horizontal, gap, padding, justifyContent, alignItems)
+- **グラフィックス**: fill (color, gradient, image, mesh_gradient), stroke, effects (blur, shadow)
+- **コンポーネント**: 再利用可能コンポーネントとrefインスタンス (プロパティオーバーライド、descendantsカスタマイズ)
+- **変数 & テーマ**: ドキュメント全体の変数、テーマ依存値
+- **スロット**: コンテナ型コンポーネントのフレームスロット
+
+## 開発
 
 - **言語**: Rust (edition 2024)
 - **ビルドツール**: Cargo
 
-## セットアップ
-
 ```bash
-# ビルド
-cargo build
-
-# 実行
-cargo run
-
-# リリースビルド
-cargo build --release
+cargo build          # デバッグビルド
+cargo test           # テスト実行 (72テスト)
+cargo clippy         # Lint
+cargo fmt            # フォーマット
 ```
 
-## ステータス
+### リリース
 
-現在開発初期段階です。
+```bash
+./scripts/release.sh 0.1.0   # バージョン更新、コミット、タグ作成
+git push && git push origin v0.1.0  # CIリリースをトリガー
+```
 
 ## ライセンス
 

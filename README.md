@@ -8,27 +8,101 @@ A CLI tool that parses Pencil ([pencil.dev](https://pencil.dev)) `.pen` files an
 
 Analyzes Pencil design files (`.pen`) to extract structure, components, and style information. Primarily designed to provide design context to AI, enabling text-based understanding of design contents.
 
+## Installation
+
+Download a prebuilt binary from [Releases](https://github.com/NaruseNia/pencil_analyzer/releases), or build from source:
+
+```bash
+cargo install --path .
+```
+
+## Usage
+
+```bash
+# Human-readable tree output (default)
+pencil_analyzer design.pen
+
+# JSON output
+pencil_analyzer design.pen --format json
+
+# Resolve component references (expand ref nodes)
+pencil_analyzer design.pen --resolve-refs
+
+# Resolve variables (uses default theme)
+pencil_analyzer design.pen --resolve-vars
+
+# Resolve variables with a specific theme
+pencil_analyzer design.pen --resolve-vars --theme "mode=dark,spacing=condensed"
+
+# Combine all options
+pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --format json
+```
+
+### Options
+
+| Flag | Description |
+|---|---|
+| `--format text\|json` | Output format (default: `text`) |
+| `--resolve-refs` | Expand `ref` nodes into full component trees |
+| `--resolve-vars` | Substitute `$variable` references with concrete values |
+| `--theme <axes>` | Theme selection for variable resolution (e.g. `mode=dark`) |
+
+### Output Examples
+
+**Text format** — human-readable tree with types, IDs, sizes, and key properties:
+
+```
+Document (version 2.9)
+  Themes: mode[light, dark]
+  Variables: 2 defined
+    $color.background: color
+    $color.text: color
+
+  [frame] round-button (200x48) @(0,0)
+    reusable: true
+    fill: Color(Value("#3B82F6"))
+    layout: Horizontal
+    [text] label
+      fill: Color(Value("#FFFFFF"))
+      content: Submit
+  [frame] landing-page (1440x900) @(300,0)
+    fill: Color(Variable("$color.background"))
+    layout: Vertical
+    [text] hero-title
+      content: Welcome to Pencil
+    [ref] cta-button -> round-button
+      override: label
+```
+
+**JSON format** — re-serialized document structure, suitable for piping to other tools or AI context.
+
+## Supported .pen Features
+
+- **Object types**: rectangle, frame, text, ellipse, line, polygon, path, group, note, prompt, context, icon_font, ref
+- **Layout**: flexbox-style (vertical/horizontal, gap, padding, justifyContent, alignItems)
+- **Graphics**: fill (color, gradient, image, mesh_gradient), stroke, effects (blur, shadow)
+- **Components**: reusable components and ref instances with property overrides and descendant customization
+- **Variables & Themes**: document-wide variables with theme-dependent values
+- **Slots**: frame slots for container-style components
+
 ## Development
 
 - **Language**: Rust (edition 2024)
 - **Build tool**: Cargo
 
-## Setup
-
 ```bash
-# Build
-cargo build
-
-# Run
-cargo run
-
-# Release build
-cargo build --release
+cargo build          # Debug build
+cargo test           # Run tests (72 tests)
+cargo clippy         # Lint
+cargo fmt            # Format
 ```
 
-## Status
+### Release
 
-Currently in early development.
+```bash
+./scripts/release.sh 0.1.0   # Update version, commit, tag
+git push && git push origin v0.1.0  # Trigger CI release
+```
 
 ## License
 
