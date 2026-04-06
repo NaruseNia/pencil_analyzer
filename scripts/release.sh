@@ -1,18 +1,52 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ $# -ne 1 ]; then
-  echo "Usage: $0 <version>" >&2
+usage() {
+  echo "Usage: $0 <version> [-C <directory>]" >&2
   echo "Example: $0 0.2.0" >&2
+  echo "         $0 0.2.0 -C /path/to/project" >&2
   exit 1
+}
+
+if [ $# -lt 1 ]; then
+  usage
 fi
 
 VERSION="$1"
+shift
+
+# Parse optional -C flag
+PROJECT_DIR=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -C)
+      [ $# -lt 2 ] && usage
+      PROJECT_DIR="$2"
+      shift 2
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
+
+# Change to project directory if specified
+if [ -n "$PROJECT_DIR" ]; then
+  cd "$PROJECT_DIR"
+fi
+
 TAG="v${VERSION}"
 
 # Validate semver format
 if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
   echo "Error: Invalid version format '${VERSION}'. Expected semver (e.g. 0.2.0)" >&2
+  exit 1
+fi
+
+# Check Cargo.toml exists
+if [ ! -f Cargo.toml ]; then
+  echo "Error: Cargo.toml not found in $(pwd)" >&2
+  echo "Use -C to specify the project directory." >&2
   exit 1
 fi
 
