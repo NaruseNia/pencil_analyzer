@@ -16,18 +16,23 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
             archive: tar.gz
+            npm_pkg: pencil-analyzer-linux-x64
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
             archive: tar.gz
+            npm_pkg: pencil-analyzer-linux-arm64
           - target: x86_64-apple-darwin
             os: macos-latest
             archive: tar.gz
+            npm_pkg: pencil-analyzer-darwin-x64
           - target: aarch64-apple-darwin
             os: macos-latest
             archive: tar.gz
+            npm_pkg: pencil-analyzer-darwin-arm64
           - target: x86_64-pc-windows-msvc
             os: windows-latest
             archive: zip
+            npm_pkg: pencil-analyzer-win32-x64
 
     runs-on: ${{ matrix.os }}
 
@@ -63,11 +68,28 @@ jobs:
         run: |
           Compress-Archive -Path target/${{ matrix.target }}/release/pencil_analyzer.exe -DestinationPath pencil_analyzer-${{ github.ref_name }}-${{ matrix.target }}.zip
 
-      - name: Upload artifact
+      - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
           name: pencil_analyzer-${{ matrix.target }}
           path: pencil_analyzer-${{ github.ref_name }}-${{ matrix.target }}.*
+
+      - name: Prepare npm package
+        shell: bash
+        run: |
+          mkdir -p npm/${{ matrix.npm_pkg }}/bin
+          if [ "${{ matrix.archive }}" = "zip" ]; then
+            cp target/${{ matrix.target }}/release/pencil_analyzer.exe npm/${{ matrix.npm_pkg }}/bin/
+          else
+            cp target/${{ matrix.target }}/release/pencil_analyzer npm/${{ matrix.npm_pkg }}/bin/
+            chmod +x npm/${{ matrix.npm_pkg }}/bin/pencil_analyzer
+          fi
+
+      - name: Upload npm package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-${{ matrix.npm_pkg }}
+          path: npm/${{ matrix.npm_pkg }}
 
   release:
     needs: build
@@ -86,4 +108,65 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: artifacts/*
+          files: artifacts/pencil_analyzer-*
+
+  npm-publish:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Download npm artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: npm-artifacts
+          pattern: npm-*
+          merge-multiple: false
+
+      - name: Get version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish platform packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          for pkg_dir in npm-artifacts/npm-pencil-analyzer-*/; do
+            pkg_name=$(basename "$pkg_dir" | sed 's/^npm-//')
+
+            # Copy artifact contents into source npm package dir
+            cp -r "${pkg_dir}"/* "npm/${pkg_name}/"
+
+            # Update version
+            cd "npm/${pkg_name}"
+            npm version "$VERSION" --no-git-tag-version --allow-same-version
+            npm publish --access public
+            cd ../..
+          done
+
+      - name: Publish main package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          cd npm/pencil-analyzer
+
+          # Update version in package.json and optionalDependencies
+          node -e "
+            const pkg = require('./package.json');
+            pkg.version = '$VERSION';
+            for (const dep of Object.keys(pkg.optionalDependencies || {})) {
+              pkg.optionalDependencies[dep] = '$VERSION';
+            }
+            require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+          npm publish --access public
