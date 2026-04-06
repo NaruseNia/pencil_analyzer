@@ -2,6 +2,7 @@ mod error;
 mod model;
 mod output;
 mod parse;
+mod resolve;
 
 use std::path::PathBuf;
 
@@ -33,7 +34,11 @@ struct Cli {
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
-    let doc = parse::parse_document(&cli.file)?;
+    let mut doc = parse::parse_document(&cli.file)?;
+
+    if cli.resolve_refs {
+        doc = resolve::refs::resolve_refs(&doc)?;
+    }
 
     match cli.format.as_str() {
         "json" => {
