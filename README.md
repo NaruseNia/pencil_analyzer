@@ -26,6 +26,12 @@ curl -fsSL https://raw.githubusercontent.com/NaruseNia/pencil_analyzer/main/scri
 curl -fsSL https://raw.githubusercontent.com/NaruseNia/pencil_analyzer/main/scripts/install.sh | INSTALL_DIR=~/.local/bin bash
 ```
 
+**Run via npx** (no install required):
+
+```bash
+npx @narusenia/pencil-analyzer design.pen
+```
+
 **Other methods**:
 
 - Download a prebuilt binary from [Releases](https://github.com/NaruseNia/pencil_analyzer/releases)
