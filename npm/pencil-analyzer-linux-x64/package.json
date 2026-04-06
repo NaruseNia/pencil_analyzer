@@ -1,13 +1,17 @@
 {
   "name": "@narusenia/pencil-analyzer-linux-x64",
-  "version": "0.0.0",
+  "version": "0.2.0",
   "description": "pencil-analyzer binary for Linux x64",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/NaruseNia/pencil_analyzer"
   },
-  "os": ["linux"],
-  "cpu": ["x64"],
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
   "preferUnplugged": true
 }
