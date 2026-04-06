@@ -1,6 +1,6 @@
 {
   "name": "@narusenia/pencil-analyzer",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "CLI tool that parses Pencil (.pen) design files for humans and AI",
   "license": "MIT",
   "repository": {
@@ -11,10 +11,10 @@
     "pencil-analyzer": "bin/pencil-analyzer.js"
   },
   "optionalDependencies": {
-    "@narusenia/pencil-analyzer-linux-x64": "0.2.0",
-    "@narusenia/pencil-analyzer-linux-arm64": "0.2.0",
-    "@narusenia/pencil-analyzer-darwin-x64": "0.2.0",
-    "@narusenia/pencil-analyzer-darwin-arm64": "0.2.0",
-    "@narusenia/pencil-analyzer-win32-x64": "0.2.0"
+    "@narusenia/pencil-analyzer-linux-x64": "0.2.1",
+    "@narusenia/pencil-analyzer-linux-arm64": "0.2.1",
+    "@narusenia/pencil-analyzer-darwin-x64": "0.2.1",
+    "@narusenia/pencil-analyzer-darwin-arm64": "0.2.1",
+    "@narusenia/pencil-analyzer-win32-x64": "0.2.1"
   }
 }

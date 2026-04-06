@@ -1,6 +1,6 @@
 {
   "name": "@narusenia/pencil-analyzer-darwin-x64",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "pencil-analyzer binary for macOS x64",
   "license": "MIT",
   "repository": {
