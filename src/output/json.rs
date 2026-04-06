@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use super::OutputOptions;
 use crate::model::document::Document;
 
 /// Structural keys that are always retained regardless of filter.
@@ -7,9 +8,9 @@ const STRUCTURAL_KEYS: &[&str] = &[
     "type", "id", "name", "children", "version", "ref",
 ];
 
-pub fn format(doc: &Document, filter: Option<&HashSet<String>>) -> anyhow::Result<String> {
+pub fn format(doc: &Document, opts: &OutputOptions) -> anyhow::Result<String> {
     let value = serde_json::to_value(doc)?;
-    let output = match filter {
+    let output = match &opts.filter {
         Some(fields) => filter_value(&value, fields),
         None => value,
     };

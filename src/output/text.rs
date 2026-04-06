@@ -1,46 +1,48 @@
 use std::collections::HashSet;
 
+use super::OutputOptions;
 use crate::model::common::TextContent;
 use crate::model::document::{Document, VariableDef};
 use crate::model::graphics::Fills;
 use crate::model::layout::Dimension;
 use crate::model::objects::Child;
 
-pub fn format(doc: &Document, filter: Option<&HashSet<String>>) -> String {
+pub fn format(doc: &Document, opts: &OutputOptions) -> String {
+    let filter = opts.filter.as_ref();
     let mut out = String::new();
     out.push_str(&format!("Document (version {})\n", doc.version));
 
-    if allowed(filter, "themes") {
-        if let Some(themes) = &doc.themes {
-            let entries: Vec<String> = themes
-                .iter()
-                .map(|(k, v)| format!("{k}[{}]", v.join(", ")))
-                .collect();
-            out.push_str(&format!("  Themes: {}\n", entries.join(", ")));
+    if allowed(filter, "themes")
+        && let Some(themes) = &doc.themes
+    {
+        let entries: Vec<String> = themes
+            .iter()
+            .map(|(k, v)| format!("{k}[{}]", v.join(", ")))
+            .collect();
+        out.push_str(&format!("  Themes: {}\n", entries.join(", ")));
+    }
+
+    if allowed(filter, "variables")
+        && let Some(vars) = &doc.variables
+    {
+        out.push_str(&format!("  Variables: {} defined\n", vars.len()));
+        for (name, def) in vars {
+            let type_str = match def {
+                VariableDef::Boolean { .. } => "boolean",
+                VariableDef::Color { .. } => "color",
+                VariableDef::Number { .. } => "number",
+                VariableDef::String { .. } => "string",
+            };
+            out.push_str(&format!("    ${name}: {type_str}\n"));
         }
     }
 
-    if allowed(filter, "variables") {
-        if let Some(vars) = &doc.variables {
-            out.push_str(&format!("  Variables: {} defined\n", vars.len()));
-            for (name, def) in vars {
-                let type_str = match def {
-                    VariableDef::Boolean { .. } => "boolean",
-                    VariableDef::Color { .. } => "color",
-                    VariableDef::Number { .. } => "number",
-                    VariableDef::String { .. } => "string",
-                };
-                out.push_str(&format!("    ${name}: {type_str}\n"));
-            }
-        }
-    }
-
-    if allowed(filter, "imports") {
-        if let Some(imports) = &doc.imports {
-            out.push_str(&format!("  Imports: {} files\n", imports.len()));
-            for (alias, path) in imports {
-                out.push_str(&format!("    {alias} -> {path}\n"));
-            }
+    if allowed(filter, "imports")
+        && let Some(imports) = &doc.imports
+    {
+        out.push_str(&format!("  Imports: {} files\n", imports.len()));
+        for (alias, path) in imports {
+            out.push_str(&format!("    {alias} -> {path}\n"));
         }
     }
 
@@ -93,11 +95,11 @@ fn format_child(out: &mut String, child: &Child, depth: usize, filter: Option<&H
                 "{indent}[{type_name}] {id}{name_suffix} -> {}{pos_str}\n",
                 r.ref_id
             ));
-            if allowed(filter, "descendants") {
-                if let Some(desc) = &r.descendants {
-                    for (path, _) in desc {
-                        out.push_str(&format!("{indent}  override: {path}\n"));
-                    }
+            if allowed(filter, "descendants")
+                && let Some(desc) = &r.descendants
+            {
+                for path in desc.keys() {
+                    out.push_str(&format!("{indent}  override: {path}\n"));
                 }
             }
         }

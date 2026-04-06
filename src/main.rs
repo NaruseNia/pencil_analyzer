@@ -3,7 +3,8 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use clap::Parser;
-use pencil_analyzer::{output, parse, resolve};
+use pencil_analyzer::output::OutputOptions;
+use pencil_analyzer::{extract, output, parse, resolve};
 
 #[derive(Parser)]
 #[command(name = "pencil_analyzer", about = "Parse and analyze Pencil .pen files")]
@@ -30,6 +31,10 @@ struct Cli {
     /// Comma-separated list of fields to include in output (e.g., "content,fill,layout")
     #[arg(long, value_delimiter = ',')]
     filter: Option<Vec<String>>,
+
+    /// Extract specific categories: components, variables, imports, themes
+    #[arg(long, value_delimiter = ',')]
+    extract: Option<Vec<String>>,
 }
 
 fn main() -> Result<()> {
@@ -48,17 +53,25 @@ fn main() -> Result<()> {
         doc = resolve::variables::resolve_variables(&doc, &theme)?;
     }
 
-    let filter: Option<HashSet<String>> = cli
-        .filter
-        .map(|fields| fields.into_iter().collect());
+    let extract_set: Option<HashSet<String>> = cli
+        .extract
+        .map(|cats| cats.into_iter().collect());
+
+    if let Some(ref cats) = extract_set {
+        doc = extract::extract_document(&doc, cats);
+    }
+
+    let opts = OutputOptions {
+        filter: cli.filter.map(|fields| fields.into_iter().collect()),
+    };
 
     match cli.format.as_str() {
         "json" => {
-            let out = output::json::format(&doc, filter.as_ref())?;
+            let out = output::json::format(&doc, &opts)?;
             println!("{out}");
         }
         "text" => {
-            let out = output::text::format(&doc, filter.as_ref());
+            let out = output::text::format(&doc, &opts);
             println!("{out}");
         }
         _ => unreachable!(),
