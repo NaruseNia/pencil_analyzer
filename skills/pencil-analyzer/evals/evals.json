@@ -1,0 +1,23 @@
+{
+  "skill_name": "pencil-analyzer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "tests/fixtures/sample.pen の全体構造を把握したい。どんなコンポーネントがあって、どういう階層になっているか教えて。",
+      "expected_output": "pencil_analyzerを使ってファイルの構造をツリー表示し、コンポーネントや階層を説明する",
+      "files": ["tests/fixtures/sample.pen"]
+    },
+    {
+      "id": 2,
+      "prompt": "tests/fixtures/sample.pen にある再利用可能なコンポーネントの一覧と、それぞれの変数定義を抽出して。",
+      "expected_output": "pencil_analyzerの--extractフラグを使ってcomponentsとvariablesを抽出する",
+      "files": ["tests/fixtures/sample.pen"]
+    },
+    {
+      "id": 3,
+      "prompt": "tests/fixtures/sample.pen のref(コンポーネントインスタンス)を展開して、実際に何がレンダリングされるか確認したい。テキスト内容も含めて見せて。",
+      "expected_output": "pencil_analyzerの--resolve-refsと--filter contentを使ってref展開+テキスト内容を表示する",
+      "files": ["tests/fixtures/sample.pen"]
+    }
+  ]
+}
