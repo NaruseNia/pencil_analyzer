@@ -10,21 +10,37 @@ const STRUCTURAL_KEYS: &[&str] = &[
 
 pub fn format(doc: &Document, opts: &OutputOptions) -> anyhow::Result<String> {
     let value = serde_json::to_value(doc)?;
-    let output = match &opts.filter {
-        Some(fields) => filter_value(&value, fields),
-        None => value,
-    };
+    let output = apply_options(&value, opts.filter.as_ref(), opts.max_depth, 0);
     Ok(serde_json::to_string_pretty(&output)?)
 }
 
-fn filter_value(value: &serde_json::Value, fields: &HashSet<String>) -> serde_json::Value {
+fn apply_options(
+    value: &serde_json::Value,
+    filter: Option<&HashSet<String>>,
+    max_depth: Option<usize>,
+    depth: usize,
+) -> serde_json::Value {
     match value {
         serde_json::Value::Object(map) => {
             let filtered: serde_json::Map<String, serde_json::Value> = map
                 .iter()
                 .filter_map(|(k, v)| {
-                    if STRUCTURAL_KEYS.contains(&k.as_str()) || fields.contains(k) {
-                        Some((k.clone(), filter_value(v, fields)))
+                    // Truncate children beyond max_depth
+                    if k == "children" {
+                        if let Some(max) = max_depth {
+                            if depth >= max {
+                                return None;
+                            }
+                        }
+                    }
+                    let dominated = match filter {
+                        Some(fields) => {
+                            STRUCTURAL_KEYS.contains(&k.as_str()) || fields.contains(k)
+                        }
+                        None => true,
+                    };
+                    if dominated {
+                        Some((k.clone(), apply_options(v, filter, max_depth, depth)))
                     } else {
                         None
                     }
@@ -32,9 +48,11 @@ fn filter_value(value: &serde_json::Value, fields: &HashSet<String>) -> serde_js
                 .collect();
             serde_json::Value::Object(filtered)
         }
-        serde_json::Value::Array(arr) => {
-            serde_json::Value::Array(arr.iter().map(|v| filter_value(v, fields)).collect())
-        }
+        serde_json::Value::Array(arr) => serde_json::Value::Array(
+            arr.iter()
+                .map(|v| apply_options(v, filter, max_depth, depth + 1))
+                .collect(),
+        ),
         other => other.clone(),
     }
 }

@@ -49,7 +49,7 @@ pub fn format(doc: &Document, opts: &OutputOptions) -> String {
     out.push('\n');
 
     for child in &doc.children {
-        format_child(&mut out, child, 1, filter);
+        format_child(&mut out, child, 1, filter, opts.max_depth);
     }
 
     out
@@ -63,7 +63,12 @@ fn allowed(filter: Option<&HashSet<String>>, field: &str) -> bool {
     }
 }
 
-fn format_child(out: &mut String, child: &Child, depth: usize, filter: Option<&HashSet<String>>) {
+fn format_child(out: &mut String, child: &Child, depth: usize, filter: Option<&HashSet<String>>, max_depth: Option<usize>) {
+    if let Some(max) = max_depth {
+        if depth > max {
+            return;
+        }
+    }
     let indent = "  ".repeat(depth);
     let id = child.id();
     let type_name = child.type_name();
@@ -126,7 +131,7 @@ fn format_child(out: &mut String, child: &Child, depth: usize, filter: Option<&H
 
     if let Some(children) = child.children() {
         for c in children {
-            format_child(out, c, depth + 1, filter);
+            format_child(out, c, depth + 1, filter, max_depth);
         }
     }
 }

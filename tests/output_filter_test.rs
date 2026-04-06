@@ -107,7 +107,7 @@ fn sample_doc() -> Document {
 #[test]
 fn text_no_filter_includes_everything() {
     let doc = sample_doc();
-    let opts = OutputOptions { filter: None };
+    let opts = OutputOptions { filter: None, max_depth: None };
     let out = text::format(&doc, &opts);
 
     assert!(out.contains("Themes:"));
@@ -126,6 +126,7 @@ fn text_filter_content_only() {
     let doc = sample_doc();
     let opts = OutputOptions {
         filter: Some(["content".into()].into()),
+        max_depth: None,
     };
     let out = text::format(&doc, &opts);
 
@@ -147,6 +148,7 @@ fn text_filter_fill_and_layout() {
     let doc = sample_doc();
     let opts = OutputOptions {
         filter: Some(["fill".into(), "layout".into()].into()),
+        max_depth: None,
     };
     let out = text::format(&doc, &opts);
 
@@ -161,6 +163,7 @@ fn text_filter_size_and_position() {
     let doc = sample_doc();
     let opts = OutputOptions {
         filter: Some(["size".into(), "position".into()].into()),
+        max_depth: None,
     };
     let out = text::format(&doc, &opts);
 
@@ -175,6 +178,7 @@ fn text_filter_excludes_size_and_position_when_not_requested() {
     let doc = sample_doc();
     let opts = OutputOptions {
         filter: Some(["content".into()].into()),
+        max_depth: None,
     };
     let out = text::format(&doc, &opts);
 
@@ -189,7 +193,7 @@ fn text_filter_excludes_size_and_position_when_not_requested() {
 #[test]
 fn json_no_filter_includes_all_keys() {
     let doc = sample_doc();
-    let opts = OutputOptions { filter: None };
+    let opts = OutputOptions { filter: None, max_depth: None };
     let out = json::format(&doc, &opts).unwrap();
     let v: serde_json::Value = serde_json::from_str(&out).unwrap();
 
@@ -205,6 +209,7 @@ fn json_filter_keeps_structural_keys() {
     let doc = sample_doc();
     let opts = OutputOptions {
         filter: Some(["fill".into()].into()),
+        max_depth: None,
     };
     let out = json::format(&doc, &opts).unwrap();
     let v: serde_json::Value = serde_json::from_str(&out).unwrap();
@@ -223,6 +228,7 @@ fn json_filter_removes_non_matching_keys() {
     let doc = sample_doc();
     let opts = OutputOptions {
         filter: Some(["fill".into()].into()),
+        max_depth: None,
     };
     let out = json::format(&doc, &opts).unwrap();
     let v: serde_json::Value = serde_json::from_str(&out).unwrap();
@@ -241,6 +247,7 @@ fn json_filter_applies_recursively() {
     let doc = sample_doc();
     let opts = OutputOptions {
         filter: Some(["content".into()].into()),
+        max_depth: None,
     };
     let out = json::format(&doc, &opts).unwrap();
     let v: serde_json::Value = serde_json::from_str(&out).unwrap();

@@ -83,6 +83,10 @@ struct Cli {
     /// Show only the node hierarchy (type, id, name) without any properties
     #[arg(long)]
     only_structure: bool,
+
+    /// Limit tree depth (1 = top-level children only)
+    #[arg(long)]
+    depth: Option<usize>,
 }
 
 fn print_list(title: &str, items: &[(&str, &str)]) {
@@ -143,6 +147,7 @@ fn main() -> Result<()> {
         } else {
             cli.filter.map(|fields| fields.into_iter().collect())
         },
+        max_depth: cli.depth,
     };
 
     match cli.format.as_str() {
