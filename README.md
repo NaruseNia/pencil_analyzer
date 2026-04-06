@@ -10,11 +10,26 @@ Analyzes Pencil design files (`.pen`) to extract structure, components, and styl
 
 ## Installation
 
-Download a prebuilt binary from [Releases](https://github.com/NaruseNia/pencil_analyzer/releases), or build from source:
+**Quick install** (Linux / macOS):
 
 ```bash
-cargo install --path .
+curl -fsSL https://raw.githubusercontent.com/NaruseNia/pencil_analyzer/main/scripts/install.sh | bash
 ```
+
+You can specify a version or install directory:
+
+```bash
+# Install a specific version
+curl -fsSL https://raw.githubusercontent.com/NaruseNia/pencil_analyzer/main/scripts/install.sh | bash -s 0.1.0
+
+# Custom install directory
+curl -fsSL https://raw.githubusercontent.com/NaruseNia/pencil_analyzer/main/scripts/install.sh | INSTALL_DIR=~/.local/bin bash
+```
+
+**Other methods**:
+
+- Download a prebuilt binary from [Releases](https://github.com/NaruseNia/pencil_analyzer/releases)
+- Build from source: `cargo install --path .`
 
 ## Usage
 
