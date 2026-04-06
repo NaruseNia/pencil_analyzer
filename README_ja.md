@@ -76,6 +76,13 @@ pencil_analyzer design.pen --extract components --type text --filter content
 # 純粋な階層構造のみ表示 (プロパティなし)
 pencil_analyzer design.pen --only-structure
 
+# ツリーの深さを制限 (トップレベルのみ)
+pencil_analyzer design.pen --depth 1
+
+# 正規表現でノードパスを絞り込み (名前ベースの階層)
+pencil_analyzer design.pen --regex "Components/.*"
+pencil_analyzer design.pen --regex ".*Button.*"
+
 # --type, --filter, --extract で使える値を一覧表示
 pencil_analyzer --list types
 
@@ -95,6 +102,8 @@ pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --f
 | `--type <types>` | ノードタイプで絞り込み: `rectangle`, `frame`, `text`, `ellipse`, `line`, `polygon`, `path`, `group`, `note`, `prompt`, `context`, `icon_font`, `ref` |
 | `--filter <fields>` | 指定フィールドのみ出力: `content`, `fill`, `layout`, `size`, `position`, `reusable`, `descendants`, `themes`, `variables`, `imports` |
 | `--only-structure` | ノードの階層構造 (type, id, name) のみ表示、プロパティなし |
+| `--depth <n>` | ツリーの深さを制限 (`1` = トップレベルの子のみ) |
+| `--regex <pattern>` | 正規表現でノードパスを絞り込み (例: `Components/.*`) |
 | `--list <category>` | 使用可能な値を一覧表示: `types`, `filters`, `extracts` |
 
 ### 出力例
@@ -142,7 +151,7 @@ Document (version 2.9)
 
 ```bash
 cargo build          # デバッグビルド
-cargo test           # テスト実行 (88テスト)
+cargo test           # テスト実行 (99テスト)
 cargo clippy         # Lint
 cargo fmt            # フォーマット
 ```
@@ -156,4 +165,4 @@ git push && git push origin v0.1.0  # CIリリースをトリガー
 
 ## ライセンス
 
-TBD
+MIT License。詳細は [LICENSE](LICENSE) を参照。

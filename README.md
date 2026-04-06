@@ -76,6 +76,13 @@ pencil_analyzer design.pen --extract components --type text --filter content
 # Show pure hierarchy only (no properties)
 pencil_analyzer design.pen --only-structure
 
+# Limit tree depth (top-level only)
+pencil_analyzer design.pen --depth 1
+
+# Filter by regex on node path (name-based hierarchy)
+pencil_analyzer design.pen --regex "Components/.*"
+pencil_analyzer design.pen --regex ".*Button.*"
+
 # List available values for --type, --filter, --extract
 pencil_analyzer --list types
 
@@ -95,6 +102,8 @@ pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --f
 | `--type <types>` | Filter nodes by type: `rectangle`, `frame`, `text`, `ellipse`, `line`, `polygon`, `path`, `group`, `note`, `prompt`, `context`, `icon_font`, `ref` |
 | `--filter <fields>` | Include only specified fields: `content`, `fill`, `layout`, `size`, `position`, `reusable`, `descendants`, `themes`, `variables`, `imports` |
 | `--only-structure` | Show only the node hierarchy (type, id, name) without any properties |
+| `--depth <n>` | Limit tree depth (`1` = top-level children only) |
+| `--regex <pattern>` | Filter nodes by regex against their path (e.g. `Components/.*`) |
 | `--list <category>` | List available values: `types`, `filters`, `extracts` |
 
 ### Output Examples
@@ -142,7 +151,7 @@ Document (version 2.9)
 
 ```bash
 cargo build          # Debug build
-cargo test           # Run tests (88 tests)
+cargo test           # Run tests (99 tests)
 cargo clippy         # Lint
 cargo fmt            # Format
 ```
@@ -156,4 +165,4 @@ git push && git push origin v0.1.0  # Trigger CI release
 
 ## License
 
-TBD
+MIT License. See [LICENSE](LICENSE) for details.
