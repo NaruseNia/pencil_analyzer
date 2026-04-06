@@ -49,6 +49,21 @@ pencil_analyzer design.pen --resolve-vars
 # テーマを指定して変数を解決
 pencil_analyzer design.pen --resolve-vars --theme "mode=dark,spacing=condensed"
 
+# コンポーネント (再利用可能ノード) だけ抽出
+pencil_analyzer design.pen --extract components
+
+# 変数定義だけ抽出
+pencil_analyzer design.pen --extract variables
+
+# 複数カテゴリを指定
+pencil_analyzer design.pen --extract components,variables,themes
+
+# 出力フィールドを絞り込み (contentとfillのみ)
+pencil_analyzer design.pen --filter content,fill
+
+# extract + filter の組み合わせ (コンポーネントのcontentだけ)
+pencil_analyzer design.pen --extract components --filter content
+
 # 全オプションを組み合わせ
 pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --format json
 ```
@@ -61,6 +76,8 @@ pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --f
 | `--resolve-refs` | `ref` ノードを完全なコンポーネントツリーに展開 |
 | `--resolve-vars` | `$variable` 参照を具体的な値に置換 |
 | `--theme <axes>` | 変数解決のテーマ指定 (例: `mode=dark`) |
+| `--extract <categories>` | 特定カテゴリを抽出: `components`, `variables`, `imports`, `themes` |
+| `--filter <fields>` | 指定フィールドのみ出力: `content`, `fill`, `layout`, `size`, `position`, `reusable`, `descendants`, `themes`, `variables`, `imports` |
 
 ### 出力例
 
@@ -107,7 +124,7 @@ Document (version 2.9)
 
 ```bash
 cargo build          # デバッグビルド
-cargo test           # テスト実行 (72テスト)
+cargo test           # テスト実行 (88テスト)
 cargo clippy         # Lint
 cargo fmt            # フォーマット
 ```

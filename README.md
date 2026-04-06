@@ -49,6 +49,21 @@ pencil_analyzer design.pen --resolve-vars
 # Resolve variables with a specific theme
 pencil_analyzer design.pen --resolve-vars --theme "mode=dark,spacing=condensed"
 
+# Extract only components (reusable nodes)
+pencil_analyzer design.pen --extract components
+
+# Extract only variables
+pencil_analyzer design.pen --extract variables
+
+# Extract multiple categories
+pencil_analyzer design.pen --extract components,variables,themes
+
+# Filter output fields (show only content and fill)
+pencil_analyzer design.pen --filter content,fill
+
+# Combine extract + filter (components with content only)
+pencil_analyzer design.pen --extract components --filter content
+
 # Combine all options
 pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --format json
 ```
@@ -61,6 +76,8 @@ pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --f
 | `--resolve-refs` | Expand `ref` nodes into full component trees |
 | `--resolve-vars` | Substitute `$variable` references with concrete values |
 | `--theme <axes>` | Theme selection for variable resolution (e.g. `mode=dark`) |
+| `--extract <categories>` | Extract specific categories: `components`, `variables`, `imports`, `themes` |
+| `--filter <fields>` | Include only specified fields: `content`, `fill`, `layout`, `size`, `position`, `reusable`, `descendants`, `themes`, `variables`, `imports` |
 
 ### Output Examples
 
@@ -107,7 +124,7 @@ Document (version 2.9)
 
 ```bash
 cargo build          # Debug build
-cargo test           # Run tests (72 tests)
+cargo test           # Run tests (88 tests)
 cargo clippy         # Lint
 cargo fmt            # Format
 ```
