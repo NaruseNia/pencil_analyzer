@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use regex::Regex;
+
 use crate::model::document::Document;
 use crate::model::objects::Child;
 
@@ -77,6 +79,51 @@ fn collect_by_type(children: &[Child], types: &HashSet<String>) -> Vec<Child> {
         } else if let Some(nested) = child.children() {
             // Node doesn't match — skip it but search deeper
             result.extend(collect_by_type(nested, types));
+        }
+    }
+    result
+}
+
+/// Filter nodes whose hierarchical path (built from names/IDs) matches the regex.
+/// A matched node is included with its full subtree.
+/// Path format: `"ParentName/ChildName/..."` (uses name if available, otherwise id).
+pub fn filter_by_regex(doc: &Document, re: &Regex) -> Document {
+    Document {
+        version: doc.version.clone(),
+        themes: doc.themes.clone(),
+        imports: doc.imports.clone(),
+        variables: doc.variables.clone(),
+        children: collect_by_regex(&doc.children, re, ""),
+    }
+}
+
+fn node_label(child: &Child) -> &str {
+    child
+        .entity()
+        .name
+        .as_deref()
+        .unwrap_or_else(|| child.id())
+}
+
+fn collect_by_regex(children: &[Child], re: &Regex, parent_path: &str) -> Vec<Child> {
+    let mut result = Vec::new();
+    for child in children {
+        let label = node_label(child);
+        let path = if parent_path.is_empty() {
+            label.to_string()
+        } else {
+            format!("{parent_path}/{label}")
+        };
+
+        if re.is_match(&path) {
+            // Node matches — include with full subtree
+            result.push(child.clone());
+        } else if let Some(nested) = child.children() {
+            // Not matched — recurse into children
+            let matched = collect_by_regex(nested, re, &path);
+            if !matched.is_empty() {
+                result.push(child.with_children(matched));
+            }
         }
     }
     result

@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use pencil_analyzer::extract::{extract_document, filter_by_type};
+use pencil_analyzer::extract::{extract_document, filter_by_regex, filter_by_type};
 use pencil_analyzer::model::common::*;
 use pencil_analyzer::model::document::*;
 use pencil_analyzer::model::objects::*;
@@ -380,4 +380,69 @@ fn filter_by_type_preserves_document_metadata() {
     assert!(result.themes.is_some());
     assert!(result.imports.is_some());
     assert!(result.variables.is_some());
+}
+
+// ============================================================
+// --regex (filter by path pattern)
+// ============================================================
+
+#[test]
+fn regex_matches_top_level_by_name() {
+    let doc = sample_doc();
+    let re = regex::Regex::new("^Button$").unwrap();
+    let result = filter_by_regex(&doc, &re);
+
+    assert_eq!(result.children.len(), 1);
+    assert_eq!(result.children[0].id(), "btn");
+    // Subtree preserved
+    assert_eq!(result.children[0].children().unwrap().len(), 1);
+}
+
+#[test]
+fn regex_matches_nested_path() {
+    let doc = sample_doc();
+    let re = regex::Regex::new("Button/Label").unwrap();
+    let result = filter_by_regex(&doc, &re);
+
+    // Parent "Button" is included to preserve hierarchy, child "Label" matched
+    assert_eq!(result.children.len(), 1);
+    assert_eq!(result.children[0].id(), "btn");
+    let children = result.children[0].children().unwrap();
+    assert_eq!(children.len(), 1);
+    assert_eq!(children[0].id(), "label");
+}
+
+#[test]
+fn regex_wildcard_matches_multiple() {
+    let doc = sample_doc();
+    let re = regex::Regex::new(".*Card.*").unwrap();
+    let result = filter_by_regex(&doc, &re);
+
+    // Page/Card matches — Page is kept as ancestor, Card as matched child
+    assert_eq!(result.children.len(), 1);
+    assert_eq!(result.children[0].id(), "page");
+}
+
+#[test]
+fn regex_no_match_returns_empty() {
+    let doc = sample_doc();
+    let re = regex::Regex::new("^NonExistent$").unwrap();
+    let result = filter_by_regex(&doc, &re);
+
+    assert!(result.children.is_empty());
+}
+
+#[test]
+fn regex_matches_all_under_prefix() {
+    let doc = sample_doc();
+    // Match anything starting with "Page/"
+    let re = regex::Regex::new("^Page/").unwrap();
+    let result = filter_by_regex(&doc, &re);
+
+    // "Page" itself doesn't match "^Page/", but "Page/Card" does
+    assert_eq!(result.children.len(), 1);
+    assert_eq!(result.children[0].id(), "page");
+    let children = result.children[0].children().unwrap();
+    assert_eq!(children.len(), 1);
+    assert_eq!(children[0].id(), "card");
 }

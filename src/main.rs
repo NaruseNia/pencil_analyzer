@@ -87,6 +87,10 @@ struct Cli {
     /// Limit tree depth (1 = top-level children only)
     #[arg(long)]
     depth: Option<usize>,
+
+    /// Filter nodes by regex against their path (e.g., "Components/.*", ".*Button.*")
+    #[arg(long = "regex")]
+    regex_pattern: Option<String>,
 }
 
 fn print_list(title: &str, items: &[(&str, &str)]) {
@@ -139,6 +143,11 @@ fn main() -> Result<()> {
     if let Some(types) = cli.node_type {
         let type_set: HashSet<String> = types.into_iter().collect();
         doc = extract::filter_by_type(&doc, &type_set);
+    }
+
+    if let Some(ref pattern) = cli.regex_pattern {
+        let re = regex::Regex::new(pattern)?;
+        doc = extract::filter_by_regex(&doc, &re);
     }
 
     let opts = OutputOptions {
