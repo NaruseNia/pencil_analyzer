@@ -64,13 +64,29 @@ fi
 
 # Update Cargo.toml version
 sed -i '' "s/^version = \".*\"/version = \"${VERSION}\"/" Cargo.toml
-
-# Verify the change
 echo "Updated Cargo.toml to version ${VERSION}"
 grep '^version' Cargo.toml
 
+# Update npm package.json versions
+if [ -d npm ]; then
+  for pkg_json in npm/*/package.json; do
+    node -e "
+      const fs = require('fs');
+      const pkg = JSON.parse(fs.readFileSync('${pkg_json}', 'utf8'));
+      pkg.version = '${VERSION}';
+      if (pkg.optionalDependencies) {
+        for (const dep of Object.keys(pkg.optionalDependencies)) {
+          pkg.optionalDependencies[dep] = '${VERSION}';
+        }
+      }
+      fs.writeFileSync('${pkg_json}', JSON.stringify(pkg, null, 2) + '\n');
+    "
+    echo "Updated ${pkg_json} to version ${VERSION}"
+  done
+fi
+
 # Commit and tag
-git add Cargo.toml
+git add Cargo.toml npm/
 git commit -m "release: ${TAG}"
 git tag "$TAG"
 
