@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::path::PathBuf;
 
 use anyhow::Result;
@@ -25,6 +26,10 @@ struct Cli {
     /// Theme selection (e.g., "mode=dark,spacing=condensed")
     #[arg(long)]
     theme: Option<String>,
+
+    /// Comma-separated list of fields to include in output (e.g., "content,fill,layout")
+    #[arg(long, value_delimiter = ',')]
+    filter: Option<Vec<String>>,
 }
 
 fn main() -> Result<()> {
@@ -43,13 +48,17 @@ fn main() -> Result<()> {
         doc = resolve::variables::resolve_variables(&doc, &theme)?;
     }
 
+    let filter: Option<HashSet<String>> = cli
+        .filter
+        .map(|fields| fields.into_iter().collect());
+
     match cli.format.as_str() {
         "json" => {
-            let out = output::json::format(&doc)?;
+            let out = output::json::format(&doc, filter.as_ref())?;
             println!("{out}");
         }
         "text" => {
-            let out = output::text::format(&doc);
+            let out = output::text::format(&doc, filter.as_ref());
             println!("{out}");
         }
         _ => unreachable!(),

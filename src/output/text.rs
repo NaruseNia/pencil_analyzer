@@ -1,51 +1,67 @@
+use std::collections::HashSet;
+
 use crate::model::common::TextContent;
 use crate::model::document::{Document, VariableDef};
 use crate::model::graphics::Fills;
 use crate::model::layout::Dimension;
 use crate::model::objects::Child;
 
-pub fn format(doc: &Document) -> String {
+pub fn format(doc: &Document, filter: Option<&HashSet<String>>) -> String {
     let mut out = String::new();
     out.push_str(&format!("Document (version {})\n", doc.version));
 
-    if let Some(themes) = &doc.themes {
-        let entries: Vec<String> = themes
-            .iter()
-            .map(|(k, v)| format!("{k}[{}]", v.join(", ")))
-            .collect();
-        out.push_str(&format!("  Themes: {}\n", entries.join(", ")));
-    }
-
-    if let Some(vars) = &doc.variables {
-        out.push_str(&format!("  Variables: {} defined\n", vars.len()));
-        for (name, def) in vars {
-            let type_str = match def {
-                VariableDef::Boolean { .. } => "boolean",
-                VariableDef::Color { .. } => "color",
-                VariableDef::Number { .. } => "number",
-                VariableDef::String { .. } => "string",
-            };
-            out.push_str(&format!("    ${name}: {type_str}\n"));
+    if allowed(filter, "themes") {
+        if let Some(themes) = &doc.themes {
+            let entries: Vec<String> = themes
+                .iter()
+                .map(|(k, v)| format!("{k}[{}]", v.join(", ")))
+                .collect();
+            out.push_str(&format!("  Themes: {}\n", entries.join(", ")));
         }
     }
 
-    if let Some(imports) = &doc.imports {
-        out.push_str(&format!("  Imports: {} files\n", imports.len()));
-        for (alias, path) in imports {
-            out.push_str(&format!("    {alias} -> {path}\n"));
+    if allowed(filter, "variables") {
+        if let Some(vars) = &doc.variables {
+            out.push_str(&format!("  Variables: {} defined\n", vars.len()));
+            for (name, def) in vars {
+                let type_str = match def {
+                    VariableDef::Boolean { .. } => "boolean",
+                    VariableDef::Color { .. } => "color",
+                    VariableDef::Number { .. } => "number",
+                    VariableDef::String { .. } => "string",
+                };
+                out.push_str(&format!("    ${name}: {type_str}\n"));
+            }
+        }
+    }
+
+    if allowed(filter, "imports") {
+        if let Some(imports) = &doc.imports {
+            out.push_str(&format!("  Imports: {} files\n", imports.len()));
+            for (alias, path) in imports {
+                out.push_str(&format!("    {alias} -> {path}\n"));
+            }
         }
     }
 
     out.push('\n');
 
     for child in &doc.children {
-        format_child(&mut out, child, 1);
+        format_child(&mut out, child, 1, filter);
     }
 
     out
 }
 
-fn format_child(out: &mut String, child: &Child, depth: usize) {
+/// Returns true if the field should be included in output.
+fn allowed(filter: Option<&HashSet<String>>, field: &str) -> bool {
+    match filter {
+        None => true,
+        Some(fields) => fields.contains(field),
+    }
+}
+
+fn format_child(out: &mut String, child: &Child, depth: usize, filter: Option<&HashSet<String>>) {
     let indent = "  ".repeat(depth);
     let id = child.id();
     let type_name = child.type_name();
@@ -57,10 +73,18 @@ fn format_child(out: &mut String, child: &Child, depth: usize) {
         .map(|n| format!(" \"{n}\""))
         .unwrap_or_default();
 
-    let size_str = format_size(child);
-    let pos_str = match (entity.x, entity.y) {
-        (Some(x), Some(y)) => format!(" @({x},{y})"),
-        _ => String::new(),
+    let size_str = if allowed(filter, "size") {
+        format_size(child)
+    } else {
+        String::new()
+    };
+    let pos_str = if allowed(filter, "position") {
+        match (entity.x, entity.y) {
+            (Some(x), Some(y)) => format!(" @({x},{y})"),
+            _ => String::new(),
+        }
+    } else {
+        String::new()
     };
 
     match child {
@@ -69,9 +93,11 @@ fn format_child(out: &mut String, child: &Child, depth: usize) {
                 "{indent}[{type_name}] {id}{name_suffix} -> {}{pos_str}\n",
                 r.ref_id
             ));
-            if let Some(desc) = &r.descendants {
-                for (path, _) in desc {
-                    out.push_str(&format!("{indent}  override: {path}\n"));
+            if allowed(filter, "descendants") {
+                if let Some(desc) = &r.descendants {
+                    for (path, _) in desc {
+                        out.push_str(&format!("{indent}  override: {path}\n"));
+                    }
                 }
             }
         }
@@ -82,17 +108,23 @@ fn format_child(out: &mut String, child: &Child, depth: usize) {
         }
     }
 
-    if entity.reusable == Some(true) {
+    if allowed(filter, "reusable") && entity.reusable == Some(true) {
         out.push_str(&format!("{indent}  reusable: true\n"));
     }
 
-    format_fill(out, child, &indent);
-    format_text_content(out, child, &indent);
-    format_layout_info(out, child, &indent);
+    if allowed(filter, "fill") {
+        format_fill(out, child, &indent);
+    }
+    if allowed(filter, "content") {
+        format_text_content(out, child, &indent);
+    }
+    if allowed(filter, "layout") {
+        format_layout_info(out, child, &indent);
+    }
 
     if let Some(children) = child.children() {
         for c in children {
-            format_child(out, c, depth + 1);
+            format_child(out, c, depth + 1, filter);
         }
     }
 }
