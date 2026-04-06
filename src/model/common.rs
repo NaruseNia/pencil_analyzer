@@ -44,9 +44,6 @@ pub type ColorOrVariable = OrVariable<String>;
 pub type BooleanOrVariable = OrVariable<bool>;
 pub type StringOrVariable = OrVariable<String>;
 
-/// Color is a hex string like `#AABBCC`, `#AABBCCDD`, or `#ABC`.
-pub type Color = String;
-
 /// Theme axis selections, e.g. `{ "mode": "dark" }`.
 pub type Theme = HashMap<String, String>;
 

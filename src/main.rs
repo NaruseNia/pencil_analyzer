@@ -1,13 +1,8 @@
-mod error;
-mod model;
-mod output;
-mod parse;
-mod resolve;
-
 use std::path::PathBuf;
 
 use anyhow::Result;
 use clap::Parser;
+use pencil_analyzer::{output, parse, resolve};
 
 #[derive(Parser)]
 #[command(name = "pencil_analyzer", about = "Parse and analyze Pencil .pen files")]
