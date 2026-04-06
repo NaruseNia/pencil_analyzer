@@ -1,0 +1,13 @@
+{
+  "name": "@narusenia/pencil-analyzer-win32-x64",
+  "version": "0.0.0",
+  "description": "pencil-analyzer binary for Windows x64",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NaruseNia/pencil_analyzer"
+  },
+  "os": ["win32"],
+  "cpu": ["x64"],
+  "preferUnplugged": true
+}
