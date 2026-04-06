@@ -40,6 +40,14 @@ fn main() -> Result<()> {
         doc = resolve::refs::resolve_refs(&doc)?;
     }
 
+    if cli.resolve_vars {
+        let theme = match &cli.theme {
+            Some(s) => resolve::variables::parse_theme_string(s),
+            None => resolve::variables::default_theme(&doc),
+        };
+        doc = resolve::variables::resolve_variables(&doc, &theme)?;
+    }
+
     match cli.format.as_str() {
         "json" => {
             let out = output::json::format(&doc)?;
