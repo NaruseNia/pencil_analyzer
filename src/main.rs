@@ -79,6 +79,10 @@ struct Cli {
     /// List available values: types, filters, extracts
     #[arg(long, value_parser = ["types", "filters", "extracts"])]
     list: Option<String>,
+
+    /// Show only the node hierarchy (type, id, name) without any properties
+    #[arg(long)]
+    only_structure: bool,
 }
 
 fn print_list(title: &str, items: &[(&str, &str)]) {
@@ -134,7 +138,11 @@ fn main() -> Result<()> {
     }
 
     let opts = OutputOptions {
-        filter: cli.filter.map(|fields| fields.into_iter().collect()),
+        filter: if cli.only_structure {
+            Some(HashSet::new())
+        } else {
+            cli.filter.map(|fields| fields.into_iter().collect())
+        },
     };
 
     match cli.format.as_str() {
