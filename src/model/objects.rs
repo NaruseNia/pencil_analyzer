@@ -112,6 +112,22 @@ impl Child {
         }
     }
 
+    /// Return a clone of this node with its children replaced.
+    /// For node types that don't have children, the original is cloned as-is.
+    pub fn with_children(&self, children: Vec<Child>) -> Child {
+        match self {
+            Child::Frame(f) => Child::Frame(Frame {
+                children: Some(children),
+                ..f.clone()
+            }),
+            Child::Group(g) => Child::Group(Group {
+                children: Some(children),
+                ..g.clone()
+            }),
+            other => other.clone(),
+        }
+    }
+
     pub fn entity(&self) -> &Entity {
         match self {
             Child::Rectangle(n) => &n.entity,

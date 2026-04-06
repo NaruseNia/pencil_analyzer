@@ -328,23 +328,27 @@ fn filter_by_type_frame_collects_all_frames() {
     let types: HashSet<String> = ["frame".into()].into();
     let result = filter_by_type(&doc, &types);
 
-    // Top-level frames "btn" and "page" should match; "card" is inside "page"
-    // but "page" itself matches so its subtree is preserved (card included as child)
+    // Top-level frames "btn" and "page" match; nested frame "card" is kept
+    // as a child of "page" since it also matches
     assert_eq!(result.children.len(), 2);
     assert_eq!(result.children[0].id(), "btn");
     assert_eq!(result.children[1].id(), "page");
 }
 
 #[test]
-fn filter_by_type_preserves_subtree() {
+fn filter_by_type_filters_children_recursively() {
     let doc = sample_doc();
     let types: HashSet<String> = ["frame".into()].into();
     let result = filter_by_type(&doc, &types);
 
-    // "btn" frame should still have its text child
+    // "btn" frame's text child should be filtered out (not a frame)
     let btn_children = result.children[0].children().unwrap();
-    assert_eq!(btn_children.len(), 1);
-    assert_eq!(btn_children[0].type_name(), "text");
+    assert!(btn_children.is_empty());
+
+    // "page" frame's child "card" (a frame) should be kept
+    let page_children = result.children[1].children().unwrap();
+    assert_eq!(page_children.len(), 1);
+    assert_eq!(page_children[0].id(), "card");
 }
 
 #[test]
