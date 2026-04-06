@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const { execFileSync } = require("child_process");
-const { existsSync, mkdirSync, chmodSync, createWriteStream } = require("fs");
+const { existsSync, mkdirSync, chmodSync, createWriteStream, unlinkSync, statSync } = require("fs");
 const path = require("path");
 const https = require("https");
 const { execSync } = require("child_process");
@@ -31,27 +31,37 @@ const PLATFORM_MAP = {
 
 const VERSION = require("../package.json").version;
 const REPO = "NaruseNia/pencil_analyzer";
+const BINARY_NAME = process.platform === "win32" ? "pencil_analyzer.exe" : "pencil_analyzer";
 
 function getPlatformKey() {
   const key = `${process.platform}-${process.arch}`;
   if (!PLATFORM_MAP[key]) {
-    console.error(
-      `Error: Unsupported platform ${process.platform}-${process.arch}.`
-    );
+    console.error(`Error: Unsupported platform ${process.platform}-${process.arch}.`);
     console.error(`Supported: ${Object.keys(PLATFORM_MAP).join(", ")}`);
     process.exit(1);
   }
   return key;
 }
 
+function ensureExecutable(binPath) {
+  if (process.platform === "win32") return;
+  try {
+    const stat = statSync(binPath);
+    if (!(stat.mode & 0o111)) {
+      chmodSync(binPath, 0o755);
+    }
+  } catch {}
+}
+
 function tryResolvePkg(key) {
   const { pkg } = PLATFORM_MAP[key];
-  const binary =
-    process.platform === "win32" ? "pencil_analyzer.exe" : "pencil_analyzer";
   try {
     const pkgDir = path.dirname(require.resolve(`${pkg}/package.json`));
-    const binPath = path.join(pkgDir, "bin", binary);
-    if (existsSync(binPath)) return binPath;
+    const binPath = path.join(pkgDir, "bin", BINARY_NAME);
+    if (existsSync(binPath)) {
+      ensureExecutable(binPath);
+      return binPath;
+    }
   } catch {
     // optional dependency not installed
   }
@@ -72,9 +82,7 @@ function cacheBinDir() {
 }
 
 function cachedBinaryPath() {
-  const binary =
-    process.platform === "win32" ? "pencil_analyzer.exe" : "pencil_analyzer";
-  return path.join(cacheBinDir(), binary);
+  return path.join(cacheBinDir(), BINARY_NAME);
 }
 
 function fetch(url) {
@@ -97,7 +105,10 @@ async function downloadBinary(key) {
   const url = downloadUrl(key);
   const binPath = cachedBinaryPath();
 
-  if (existsSync(binPath)) return binPath;
+  if (existsSync(binPath)) {
+    ensureExecutable(binPath);
+    return binPath;
+  }
 
   console.error(`Downloading pencil_analyzer v${VERSION}...`);
 
@@ -126,24 +137,15 @@ async function downloadBinary(key) {
     });
   }
 
-  if (!process.platform === "win32") {
-    chmodSync(binPath, 0o755);
-  }
-
   // Clean up archive
-  try {
-    require("fs").unlinkSync(archivePath);
-  } catch {}
+  try { unlinkSync(archivePath); } catch {}
 
   if (!existsSync(binPath)) {
     console.error("Error: Failed to extract binary from release archive.");
     process.exit(1);
   }
 
-  if (process.platform !== "win32") {
-    chmodSync(binPath, 0o755);
-  }
-
+  ensureExecutable(binPath);
   console.error("Done.");
   return binPath;
 }
@@ -160,9 +162,7 @@ async function main() {
       binary = await downloadBinary(key);
     } catch (e) {
       console.error(`Error: Failed to download binary: ${e.message}`);
-      console.error(
-        `You can manually download from: https://github.com/${REPO}/releases`
-      );
+      console.error(`You can manually download from: https://github.com/${REPO}/releases`);
       process.exit(1);
     }
   }
@@ -170,11 +170,14 @@ async function main() {
   try {
     execFileSync(binary, process.argv.slice(2), { stdio: "inherit" });
   } catch (e) {
-    if (e.status !== undefined) {
+    if (typeof e.status === "number") {
       process.exit(e.status);
     }
     throw e;
   }
 }
 
-main();
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
