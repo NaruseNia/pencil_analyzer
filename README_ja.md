@@ -73,6 +73,12 @@ pencil_analyzer design.pen --extract components --filter content
 # 全組み合わせ: コンポーネントからtextノードだけ抽出し、contentのみ表示
 pencil_analyzer design.pen --extract components --type text --filter content
 
+# 純粋な階層構造のみ表示 (プロパティなし)
+pencil_analyzer design.pen --only-structure
+
+# --type, --filter, --extract で使える値を一覧表示
+pencil_analyzer --list types
+
 # 全オプションを組み合わせ
 pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --format json
 ```
@@ -88,6 +94,8 @@ pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --f
 | `--extract <categories>` | 特定カテゴリを抽出: `components`, `variables`, `imports`, `themes` |
 | `--type <types>` | ノードタイプで絞り込み: `rectangle`, `frame`, `text`, `ellipse`, `line`, `polygon`, `path`, `group`, `note`, `prompt`, `context`, `icon_font`, `ref` |
 | `--filter <fields>` | 指定フィールドのみ出力: `content`, `fill`, `layout`, `size`, `position`, `reusable`, `descendants`, `themes`, `variables`, `imports` |
+| `--only-structure` | ノードの階層構造 (type, id, name) のみ表示、プロパティなし |
+| `--list <category>` | 使用可能な値を一覧表示: `types`, `filters`, `extracts` |
 
 ### 出力例
 

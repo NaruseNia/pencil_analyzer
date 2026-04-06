@@ -73,6 +73,12 @@ pencil_analyzer design.pen --extract components --filter content
 # Combine all: extract components, filter to text nodes, show only content
 pencil_analyzer design.pen --extract components --type text --filter content
 
+# Show pure hierarchy only (no properties)
+pencil_analyzer design.pen --only-structure
+
+# List available values for --type, --filter, --extract
+pencil_analyzer --list types
+
 # Combine all options
 pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --format json
 ```
@@ -88,6 +94,8 @@ pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --f
 | `--extract <categories>` | Extract specific categories: `components`, `variables`, `imports`, `themes` |
 | `--type <types>` | Filter nodes by type: `rectangle`, `frame`, `text`, `ellipse`, `line`, `polygon`, `path`, `group`, `note`, `prompt`, `context`, `icon_font`, `ref` |
 | `--filter <fields>` | Include only specified fields: `content`, `fill`, `layout`, `size`, `position`, `reusable`, `descendants`, `themes`, `variables`, `imports` |
+| `--only-structure` | Show only the node hierarchy (type, id, name) without any properties |
+| `--list <category>` | List available values: `types`, `filters`, `extracts` |
 
 ### Output Examples
 
