@@ -1,0 +1,74 @@
+{
+  "version": "2.9",
+  "themes": {
+    "mode": ["light", "dark"]
+  },
+  "variables": {
+    "color.background": {
+      "type": "color",
+      "value": [
+        { "value": "#FFFFFF", "theme": { "mode": "light" } },
+        { "value": "#000000", "theme": { "mode": "dark" } }
+      ]
+    },
+    "color.text": {
+      "type": "color",
+      "value": "#333333"
+    }
+  },
+  "children": [
+    {
+      "id": "round-button",
+      "type": "frame",
+      "reusable": true,
+      "x": 0, "y": 0,
+      "width": 200, "height": 48,
+      "cornerRadius": 9999,
+      "fill": "#3B82F6",
+      "layout": "horizontal",
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "id": "label",
+          "type": "text",
+          "content": "Submit",
+          "fill": "#FFFFFF",
+          "fontSize": 16,
+          "fontWeight": "600"
+        }
+      ]
+    },
+    {
+      "id": "landing-page",
+      "type": "frame",
+      "x": 300, "y": 0,
+      "width": 1440, "height": 900,
+      "fill": "$color.background",
+      "layout": "vertical",
+      "gap": 24,
+      "padding": [64, 120],
+      "children": [
+        {
+          "id": "hero-title",
+          "type": "text",
+          "content": "Welcome to Pencil",
+          "fill": "$color.text",
+          "fontSize": 72,
+          "fontWeight": "700"
+        },
+        {
+          "id": "cta-button",
+          "type": "ref",
+          "ref": "round-button",
+          "fill": "#EF4444",
+          "descendants": {
+            "label": {
+              "content": "Get Started"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
