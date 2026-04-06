@@ -61,8 +61,17 @@ pencil_analyzer design.pen --extract components,variables,themes
 # Filter output fields (show only content and fill)
 pencil_analyzer design.pen --filter content,fill
 
+# Filter by node type (only text nodes)
+pencil_analyzer design.pen --type text
+
+# Multiple types
+pencil_analyzer design.pen --type frame,rectangle
+
 # Combine extract + filter (components with content only)
 pencil_analyzer design.pen --extract components --filter content
+
+# Combine all: extract components, filter to text nodes, show only content
+pencil_analyzer design.pen --extract components --type text --filter content
 
 # Combine all options
 pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --format json
@@ -77,6 +86,7 @@ pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --f
 | `--resolve-vars` | Substitute `$variable` references with concrete values |
 | `--theme <axes>` | Theme selection for variable resolution (e.g. `mode=dark`) |
 | `--extract <categories>` | Extract specific categories: `components`, `variables`, `imports`, `themes` |
+| `--type <types>` | Filter nodes by type: `rectangle`, `frame`, `text`, `ellipse`, `line`, `polygon`, `path`, `group`, `note`, `prompt`, `context`, `icon_font`, `ref` |
 | `--filter <fields>` | Include only specified fields: `content`, `fill`, `layout`, `size`, `position`, `reusable`, `descendants`, `themes`, `variables`, `imports` |
 
 ### Output Examples

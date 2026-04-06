@@ -61,8 +61,17 @@ pencil_analyzer design.pen --extract components,variables,themes
 # 出力フィールドを絞り込み (contentとfillのみ)
 pencil_analyzer design.pen --filter content,fill
 
+# ノードタイプで絞り込み (テキストノードのみ)
+pencil_analyzer design.pen --type text
+
+# 複数タイプ指定
+pencil_analyzer design.pen --type frame,rectangle
+
 # extract + filter の組み合わせ (コンポーネントのcontentだけ)
 pencil_analyzer design.pen --extract components --filter content
+
+# 全組み合わせ: コンポーネントからtextノードだけ抽出し、contentのみ表示
+pencil_analyzer design.pen --extract components --type text --filter content
 
 # 全オプションを組み合わせ
 pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --format json
@@ -77,6 +86,7 @@ pencil_analyzer design.pen --resolve-refs --resolve-vars --theme "mode=dark" --f
 | `--resolve-vars` | `$variable` 参照を具体的な値に置換 |
 | `--theme <axes>` | 変数解決のテーマ指定 (例: `mode=dark`) |
 | `--extract <categories>` | 特定カテゴリを抽出: `components`, `variables`, `imports`, `themes` |
+| `--type <types>` | ノードタイプで絞り込み: `rectangle`, `frame`, `text`, `ellipse`, `line`, `polygon`, `path`, `group`, `note`, `prompt`, `context`, `icon_font`, `ref` |
 | `--filter <fields>` | 指定フィールドのみ出力: `content`, `fill`, `layout`, `size`, `position`, `reusable`, `descendants`, `themes`, `variables`, `imports` |
 
 ### 出力例
